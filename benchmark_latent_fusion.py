@@ -423,6 +423,72 @@ def fig_decision(case, df):
     return required
 
 
+def infrastructure_reliability(theta_m):
+    # Simple downstream civil-infrastructure consequence metric.
+    # The resistance margin is averaged over a foundation/slope mechanism length L.
+    # Longer correlation length reduces spatial averaging and increases the variance
+    # of the mechanism-average resistance. This is not a code check; it is a
+    # transparent propagation of length-scale uncertainty into a reliability proxy.
+    mechanism_length = 15.0
+    mean_safety_margin = 1.35
+    point_cov = 0.18
+    model_sigma = 0.04
+    gamma2 = min(1.0, max(0.0, 2.0 * theta_m / mechanism_length))
+    sigma_margin = math.sqrt((mean_safety_margin * point_cov * math.sqrt(gamma2)) ** 2 + model_sigma**2)
+    beta = (mean_safety_margin - 1.0) / sigma_margin
+    pf = 0.5 * math.erfc(beta / math.sqrt(2.0))
+    return beta, pf
+
+
+def reliability_table(primary_df):
+    rows = []
+    for label in ["Direct-only ML GP", "Geophysics-proxy-only", "Shared latent-field fusion"]:
+        row = primary_df.loc[primary_df["method"] == label].iloc[0]
+        vals = {
+            "5% Theta (m)": row["theta_q05_m"],
+            "Median Theta (m)": row["theta_median_m"],
+            "95% Theta (m)": row["theta_q95_m"],
+        }
+        beta_med, pf_med = infrastructure_reliability(float(row["theta_median_m"]))
+        beta_low, pf_low = infrastructure_reliability(float(row["theta_q05_m"]))
+        beta_high, pf_high = infrastructure_reliability(float(row["theta_q95_m"]))
+        rows.append(
+            {
+                "method": label,
+                "theta_q05_m": vals["5% Theta (m)"],
+                "theta_median_m": vals["Median Theta (m)"],
+                "theta_q95_m": vals["95% Theta (m)"],
+                "beta_median": beta_med,
+                "pf_median": pf_med,
+                "pf_q05_theta": pf_low,
+                "pf_q95_theta": pf_high,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def fig_reliability(rel_df):
+    labels = rel_df["method"].str.replace(" ", "\n")
+    pf = rel_df["pf_median"].values
+    low = np.minimum(rel_df["pf_q05_theta"].values, rel_df["pf_q95_theta"].values)
+    high = np.maximum(rel_df["pf_q05_theta"].values, rel_df["pf_q95_theta"].values)
+    yerr = np.vstack([pf - low, high - pf])
+    fig, ax = plt.subplots(figsize=(8.0, 4.8), dpi=220)
+    x = np.arange(len(labels))
+    ax.bar(x, pf, color=["#2c6b9a", "#b76e2a", "#6a994e"], alpha=0.9)
+    ax.errorbar(x, pf, yerr=yerr, fmt="none", ecolor="#1b1b1b", capsize=5, lw=1.2)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, fontsize=8.5)
+    ax.set_ylabel("Probability of margin exceedance Pf", fontsize=10.5)
+    ax.set_title("Downstream reliability effect of correlation-length uncertainty", fontsize=12.5, weight="bold")
+    ax.grid(axis="y", lw=0.3, alpha=0.35)
+    for i, val in enumerate(pf):
+        ax.text(i, val + 0.003, f"{100*val:.1f}%", ha="center", fontsize=8.5)
+    fig.tight_layout()
+    fig.savefig(FIG / "Figure 5 downstream reliability.png")
+    plt.close(fig)
+
+
 def save_table_image(df, filename, title):
     fig_h = 1.1 + 0.42 * (len(df) + 1)
     fig, ax = plt.subplots(figsize=(10.6, fig_h), dpi=220)
@@ -488,6 +554,9 @@ def main():
     fig_methods(primary, primary_df)
     fig_posterior(primary)
     required_soundings = fig_decision(primary, primary_df)
+    rel_df = reliability_table(primary_df)
+    rel_df.to_csv(DATA / "infrastructure_reliability_proxy.csv", index=False)
+    fig_reliability(rel_df)
 
     table1 = pd.DataFrame(
         [
@@ -532,6 +601,22 @@ def main():
         compact_summary[col] = compact_summary[col].map(lambda v: "" if pd.isna(v) else f"{v:.3f}")
     save_table_image(compact_summary, "Table 4 scenario sensitivity.png", "Table 4. Sensitivity to cross-information strength.")
 
+    compact_rel = rel_df.copy()
+    compact_rel = compact_rel[
+        ["method", "theta_median_m", "beta_median", "pf_median", "pf_q05_theta", "pf_q95_theta"]
+    ]
+    compact_rel.columns = [
+        "Method",
+        "Median Theta (m)",
+        "Median beta",
+        "Median Pf",
+        "Pf at 5% Theta",
+        "Pf at 95% Theta",
+    ]
+    for col in ["Median Theta (m)", "Median beta", "Median Pf", "Pf at 5% Theta", "Pf at 95% Theta"]:
+        compact_rel[col] = compact_rel[col].map(lambda v: f"{v:.4f}")
+    save_table_image(compact_rel, "Table 5 reliability propagation.png", "Table 5. Downstream reliability propagation.")
+
     best_fusion = primary_df.loc[primary_df["method"] == "Shared latent-field fusion"].iloc[0]
     direct = primary_df.loc[primary_df["method"] == "Direct-only ML GP"].iloc[0]
     interval_reduction = 1.0 - best_fusion["interval_width_m"] / direct["interval_width_m"]
@@ -546,6 +631,8 @@ def main():
         "holdout_rmse_reduction_vs_direct": float(rmse_reduction),
         "equivalent_direct_soundings_sparse_direct": int(required_soundings[0]),
         "equivalent_direct_soundings_fusion": int(required_soundings[1]),
+        "primary_fusion_reliability_beta": float(rel_df.loc[rel_df["method"] == "Shared latent-field fusion", "beta_median"].iloc[0]),
+        "primary_fusion_reliability_pf": float(rel_df.loc[rel_df["method"] == "Shared latent-field fusion", "pf_median"].iloc[0]),
         "replicates": int(len(seeds) * len(levels) * 3),
         "methods": sorted(all_df["method"].unique().tolist()),
         "outputs": {

@@ -8,6 +8,8 @@
   "holdout_rmse_reduction_vs_direct": 0.08310087989703718,
   "equivalent_direct_soundings_sparse_direct": 24,
   "equivalent_direct_soundings_fusion": 12,
+  "primary_fusion_reliability_beta": 1.651291303779365,
+  "primary_fusion_reliability_pf": 0.0493395535685053,
   "replicates": 72,
   "methods": [
     "Direct empirical variogram",
@@ -21,17 +23,20 @@
       "figures\\Figure 1 synthetic benchmark.png",
       "figures\\Figure 2 method comparison.png",
       "figures\\Figure 3 posterior scale.png",
-      "figures\\Figure 4 infrastructure decision value.png"
+      "figures\\Figure 4 infrastructure decision value.png",
+      "figures\\Figure 5 downstream reliability.png"
     ],
     "table_images": [
       "table_images\\Table 1 variables.png",
       "table_images\\Table 2 benchmark parameters.png",
       "table_images\\Table 3 primary results.png",
-      "table_images\\Table 4 scenario sensitivity.png"
+      "table_images\\Table 4 scenario sensitivity.png",
+      "table_images\\Table 5 reliability propagation.png"
     ],
     "data": [
       "data\\benchmark_all_replicates.csv",
       "data\\benchmark_summary_by_scenario.csv",
+      "data\\infrastructure_reliability_proxy.csv",
       "data\\primary_case_method_results.csv",
       "data\\primary_case_profiles.csv",
       "data\\table_1_variables.csv",
