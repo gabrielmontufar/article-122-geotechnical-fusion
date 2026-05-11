@@ -1,0 +1,10 @@
+Benchmark parameter,Value
+Common latent scale,2.40 m
+Geotechnical residual scale,0.65 m
+Geophysical residual scale,1.10 m
+Common-field standard deviation,1.00
+Geotechnical residual standard deviation,0.55
+Direct CPT/SPT observation noise,0.18
+Dense geophysical observation noise,0.16
+Primary case direct soundings,5
+Primary case geophysical samples,46

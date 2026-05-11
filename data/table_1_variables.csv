@@ -1,0 +1,7 @@
+Symbol,Definition,Unit,Engineering role
+z,Depth coordinate,m,Infrastructure-site vertical profile
+X(z),Geotechnical design property,standardized,Target field inferred from CPT/SPT
+Z(z),Geophysical response,standardized,Dense indirect observation
+E(z),Common latent geological component,standardized,Shared by geotechnical and geophysical fields
+RX(z),Geotechnical residual,standardized,Not directly visible to geophysics
+"ΘX,z",Effective geotechnical correlation length,m,Quantity used in reliability and exploration planning

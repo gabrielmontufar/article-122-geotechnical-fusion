@@ -1,0 +1,41 @@
+{
+  "seed_primary": 12264,
+  "true_effective_theta_m": 3.9871401151631476,
+  "selected_target_journal": "Engineering Geology",
+  "primary_fusion_theta_median_m": 5.502853179935944,
+  "primary_direct_theta_median_m": 8.028571428571428,
+  "interval_width_reduction_vs_direct": 0.5281231628938177,
+  "holdout_rmse_reduction_vs_direct": 0.08310087989703718,
+  "equivalent_direct_soundings_sparse_direct": 24,
+  "equivalent_direct_soundings_fusion": 12,
+  "replicates": 72,
+  "methods": [
+    "Direct empirical variogram",
+    "Direct-only ML GP",
+    "Geophysics-proxy-only",
+    "Regression-assisted residual GP",
+    "Shared latent-field fusion"
+  ],
+  "outputs": {
+    "figures": [
+      "figures\\Figure 1 synthetic benchmark.png",
+      "figures\\Figure 2 method comparison.png",
+      "figures\\Figure 3 posterior scale.png",
+      "figures\\Figure 4 infrastructure decision value.png"
+    ],
+    "table_images": [
+      "table_images\\Table 1 variables.png",
+      "table_images\\Table 2 benchmark parameters.png",
+      "table_images\\Table 3 primary results.png",
+      "table_images\\Table 4 scenario sensitivity.png"
+    ],
+    "data": [
+      "data\\benchmark_all_replicates.csv",
+      "data\\benchmark_summary_by_scenario.csv",
+      "data\\primary_case_method_results.csv",
+      "data\\primary_case_profiles.csv",
+      "data\\table_1_variables.csv",
+      "data\\table_2_benchmark_parameters.csv"
+    ]
+  }
+}
